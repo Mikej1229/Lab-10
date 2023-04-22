@@ -1,0 +1,82 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define ALPHABET_SIZE 26
+
+struct Trie {
+    int count;
+    struct Trie* children[ALPHABET_SIZE];
+};
+
+// Initialize the Trie data structure
+struct Trie* initTrie() {
+    struct Trie* root = (struct Trie*)malloc(sizeof(struct Trie));
+    root->count = 0;
+    for(int i=0; i<ALPHABET_SIZE; i++) {
+        root->children[i] = NULL;
+    }
+    return root;
+}
+
+// Insert a word into the Trie
+void insert(struct Trie** ppTrie, char* word) {
+    if(word == NULL || strlen(word) == 0) {
+        return;
+    }
+    struct Trie* current = *ppTrie;
+    for(int i=0; i<strlen(word); i++) {
+        int index = word[i] - 'a';
+        if(current->children[index] == NULL) {
+            current->children[index] = initTrie();
+        }
+        current = current->children[index];
+    }
+    current->count++;
+}
+
+// Counting the number of occurrences of a word in the Trie
+int numberOfOccurrences(struct Trie* pTrie, char* word) {
+    if(word == NULL || strlen(word) == 0) {
+        return 0;
+    }
+    struct Trie* current = pTrie;
+    for(int i=0; i<strlen(word); i++) {
+        int index = word[i] - 'a';
+        if(current->children[index] == NULL) {
+            return 0;
+        }
+        current = current->children[index];
+    }
+    return current->count;
+}
+
+// Deallocate memory used by the Trie
+struct Trie* deallocateTrie(struct Trie* pTrie) {
+    if(pTrie == NULL) {
+        return NULL;
+    }
+    for(int i=0; i<ALPHABET_SIZE; i++) {
+        if(pTrie->children[i] != NULL) {
+            pTrie->children[i] = deallocateTrie(pTrie->children[i]);
+        }
+    }
+    free(pTrie);
+    return NULL;
+}
+
+int main(void) {
+    char* words[] = {"notaword", "ucf", "no", "note", "corg"};
+    struct Trie* trie = initTrie();
+    for(int i=0; i<5; i++) {
+        insert(&trie, words[i]);
+    }
+    for(int i=0; i<5; i++) {
+        printf("%s : %d\n", words[i], numberOfOccurrences(trie, words[i]));
+    }
+    trie = deallocateTrie(trie);
+    if(trie != NULL) {
+        printf("Error in trie deallocation.\n");
+    }
+    return 0;
+}
